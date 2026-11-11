@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}RAG Chatbot{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+  <script src="{{ url_for('static', path='app.js') }}"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script src="https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js" defer></script>
+  <script src="{{ url_for('static', path='charts.js') }}" defer></script>
+  <script src="{{ url_for('static', path='exports.js') }}" defer></script>
+</head>
+<body>
+  {% block body %}{% endblock %}
+</body>
+</html>

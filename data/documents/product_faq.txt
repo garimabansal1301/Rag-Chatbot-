@@ -1,0 +1,80 @@
+Acme Cloud Storage — Frequently Asked Questions
+Last updated: first quarter. Support: support@acmecloud.example
+
+GENERAL
+
+What is Acme Cloud Storage?
+Acme Cloud Storage is an object storage service for files of any size. Data is
+replicated across three availability zones.
+
+Which regions are available?
+Acme Cloud Storage runs in six regions: US East, US West, EU Central, EU West, Asia Pacific (Singapore) and Asia Pacific (Tokyo).
+Data stays in the region you choose and is never moved unless you configure replication.
+
+PRICING
+
+How much does it cost?
+The Standard tier costs 0.02 USD per GB per month. The Archive tier costs
+0.004 USD per GB per month but retrieval takes up to 12 hours.
+
+Are there charges for data transfer?
+Uploading data is free. Downloading costs 0.05 USD per GB after the first 100 GB per month, which is free. Transfers
+between buckets in the same region are free.
+
+Is there a free tier?
+Yes. New accounts get 5 GB of Standard storage and 100 GB of downloads per month free for 12 months.
+
+Do you offer discounts?
+Customers storing more than 500 TB can request volume pricing. Annual commitments receive a 15 percent discount.
+
+LIMITS
+
+What is the maximum object size?
+A single object can be up to 5 TB. Uploads larger than 100 MB should use
+multipart upload.
+
+How many buckets can I create?
+Each account can create up to 100 buckets by default. Contact support to raise the limit. Bucket names are unique
+within a region and must be 3 to 63 characters long.
+
+What is the request rate limit?
+Each bucket supports at least 3,500 write requests and 5,500 read requests per second per prefix. Requests above
+this rate receive an HTTP 503 response and should be retried with exponential backoff.
+
+SECURITY
+
+Is my data encrypted?
+Yes. All data is encrypted at rest with AES-256 and in transit with TLS 1.3.
+Customers can bring their own encryption keys on the Enterprise plan.
+
+How do I control access?
+Use access policies attached to users, roles or buckets. Buckets are private by default. Public access requires an
+explicit setting and a confirmation step. Access keys can be rotated at any time and we recommend rotation every 90 days.
+
+Which compliance standards do you meet?
+The service is audited for SOC 2 Type II and ISO 27001. A signed data processing agreement is available for GDPR
+customers on request.
+
+RELIABILITY
+
+What is the uptime guarantee?
+The service level agreement guarantees 99.95 percent monthly uptime for the
+Standard tier. Service credits are issued automatically if the target is missed.
+
+How durable is my data?
+Objects are designed for 99.999999999 percent (eleven nines) annual durability. Versioning can be enabled per bucket
+to protect against accidental deletion; deleted versions are kept for 30 days.
+
+How do backups work?
+Enable cross-region replication to copy objects to a second region within 15 minutes. Lifecycle rules can move
+objects to the Archive tier after a number of days that you choose.
+
+SUPPORT
+
+How do I contact support?
+Standard plans receive email support with a first response within 1 business day. Enterprise plans get 24/7 phone
+support with a 30-minute response for critical issues.
+
+How do I cancel my account?
+Delete all buckets, then close the account in the console under Billing. Charges stop at the end of the billing month,
+and data is permanently erased 30 days after closure.

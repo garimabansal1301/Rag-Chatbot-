@@ -1,0 +1,141 @@
+{
+ "id": "f56dd5e58cea4fe8a5b7b3546d15205c",
+ "session_id": "1bf9c3db125d4d3fb333ef74a7e891de",
+ "filename": "orders_sample.csv",
+ "size_bytes": 1672,
+ "encoding": "UTF-8",
+ "delimiter": ",",
+ "rows": 30,
+ "columns": [
+  {
+   "name": "OrderID",
+   "dtype": "integer",
+   "missing": 0
+  },
+  {
+   "name": "OrderDate",
+   "dtype": "date",
+   "missing": 0
+  },
+  {
+   "name": "Product",
+   "dtype": "text",
+   "missing": 0
+  },
+  {
+   "name": "Category",
+   "dtype": "text",
+   "missing": 0
+  },
+  {
+   "name": "Region",
+   "dtype": "text",
+   "missing": 1
+  },
+  {
+   "name": "Quantity",
+   "dtype": "integer",
+   "missing": 1
+  },
+  {
+   "name": "Sales",
+   "dtype": "decimal",
+   "missing": 2
+  }
+ ],
+ "preview": [
+  [
+   "1001",
+   "2024-01-04",
+   "Laptop",
+   "Electronics",
+   "North",
+   "2",
+   "1799.98"
+  ],
+  [
+   "1002",
+   "2024-01-07",
+   "Office Chair",
+   "Furniture",
+   "South",
+   "4",
+   "599.96"
+  ],
+  [
+   "1003",
+   "2024-01-11",
+   "Wireless Mouse",
+   "Electronics",
+   "East",
+   "10",
+   "249.90"
+  ],
+  [
+   "1004",
+   "2024-01-15",
+   "Standing Desk",
+   "Furniture",
+   "West",
+   "1",
+   "449.00"
+  ],
+  [
+   "1005",
+   "2024-01-19",
+   "Printer Paper",
+   "Office Supplies",
+   "North",
+   "25",
+   "124.75"
+  ],
+  [
+   "1006",
+   "2024-01-23",
+   "Monitor",
+   "Electronics",
+   "South",
+   "3",
+   "629.97"
+  ],
+  [
+   "1007",
+   "2024-01-28",
+   "Ballpoint Pens",
+   "Office Supplies",
+   "East",
+   "50",
+   "49.50"
+  ],
+  [
+   "1008",
+   "2024-02-02",
+   "Bookshelf",
+   "Furniture",
+   "North",
+   "2",
+   "239.98"
+  ],
+  [
+   "1009",
+   "2024-02-06",
+   "Laptop",
+   "Electronics",
+   "West",
+   "1",
+   "899.99"
+  ],
+  [
+   "1010",
+   "2024-02-09",
+   "Desk Lamp",
+   "Furniture",
+   null,
+   "6",
+   "179.94"
+  ]
+ ],
+ "warnings": [],
+ "formula_like_cells": 0,
+ "created_at": "2026-10-29T11:56:48+00:00"
+}

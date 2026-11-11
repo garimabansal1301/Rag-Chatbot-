@@ -1,0 +1,11 @@
+<nav class="session-list" aria-label="Chat sessions">
+  {% for s in sessions %}
+    <a class="session-link {% if current and s.id == current.id %}active{% endif %}"
+       href="/sessions/{{ s.id }}" title="{{ s.title }}">
+      <span class="session-title">{{ s.title }}</span>
+      <span class="session-meta">{{ s.message_count }} msgs</span>
+    </a>
+  {% else %}
+    <p class="muted">No chats yet.</p>
+  {% endfor %}
+</nav>

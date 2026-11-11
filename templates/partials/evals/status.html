@@ -1,0 +1,27 @@
+{# Run status banner. While a run is active it polls itself; see app/evals_web.py ui_status. #}
+<div id="eval-status" class="eval-status{% if job %} {{ job.status }}{% endif %}" role="status" aria-live="polite"
+     {% if job and job.status == "running" %}hx-get="/ui/evals/status?job={{ job.id }}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+  {% if job %}
+    {% set total = job.example_ids|length %}
+    {% if job.status == "running" %}
+      <span class="eval-spinner" aria-hidden="true"></span>
+      <div>
+        <b>Evaluation running</b> ({{ "LangSmith experiment" if job.mode == "langsmith" else "local" }})
+        · {{ [job.answered, total]|min }} of {{ total }} example{{ "" if total == 1 else "s" }} answered.
+        <span class="muted">You can keep using the chatbot; results appear here when the run finishes.</span>
+      </div>
+    {% elif job.status == "completed" %}
+      <div>
+        <b>Evaluation finished.</b> {{ total }} example{{ "" if total == 1 else "s" }} evaluated
+        ({{ "LangSmith experiment" if job.mode == "langsmith" else "local" }}).
+        {% if job.report_id %}<button type="button" class="link-button" hx-get="/ui/evals/results?run={{ job.report_id }}"
+          hx-target="#eval-results" hx-on::after-request="window.evalsShowTab && window.evalsShowTab('results')">View results</button>{% endif %}
+      </div>
+    {% else %}
+      <div>
+        <b>The evaluation could not complete.</b> {{ job.error }}
+        <span class="muted">This is a run failure, not a quality score: no scores were recorded for this run.</span>
+      </div>
+    {% endif %}
+  {% endif %}
+</div>

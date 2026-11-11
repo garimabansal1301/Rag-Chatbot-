@@ -1,0 +1,88 @@
+<section id="datasets" class="datasets" aria-label="Datasets for this chat">
+  <details class="datasets-panel" {% if datasets or dataset_status %}open{% endif %}>
+    <summary>Datasets <span class="muted">({{ datasets|length }})</span></summary>
+    <form class="dataset-upload" hx-post="/ui/sessions/{{ session_id }}/datasets" hx-encoding="multipart/form-data"
+          hx-target="#datasets" hx-swap="outerHTML" hx-disabled-elt="find button">
+      <input type="file" name="file" required aria-label="CSV file or Excel .xlsx workbook"
+             accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      <button type="submit">Upload CSV or Excel</button>
+      <span class="htmx-indicator muted" role="status">Uploading and checking…</span>
+      <small class="muted">.csv (UTF-8) or Excel .xlsx workbook (you then choose a worksheet) · max {{ dataset_limit_mb }} MB · up to {{ dataset_max_rows }} rows and {{ dataset_max_columns }} columns · first row = column names</small>
+    </form>
+    {% if dataset_status %}<p class="dataset-status {{ dataset_status.level }}" role="status">{{ dataset_status.message }}</p>{% endif %}
+    {% if pending_workbook %}
+    <div class="workbook-choice" role="group" aria-labelledby="workbook-choice-title">
+      <p id="workbook-choice-title"><b>Excel workbook {{ pending_workbook.filename }}</b>: choose the worksheet to import (its first row must hold the column names).</p>
+      <ul class="sheet-list">
+        {% for s in pending_workbook.sheets %}
+        <li>
+          <span class="sheet-name">{{ s.name }}</span>
+          <span class="muted">{% if s.rows and s.columns %}about {{ "{:,}".format(s.rows) }} rows × {{ s.columns }} columns{% else %}size not recorded in the file{% endif %}</span>
+          {% if s.state != "visible" %}<span class="dataset-badge sheet-hidden">hidden sheet</span>{% endif %}
+          <form class="sheet-import" hx-post="/ui/sessions/{{ session_id }}/workbooks/{{ pending_workbook.id }}/import"
+                hx-target="#datasets" hx-swap="outerHTML" hx-disabled-elt="find button">
+            <input type="hidden" name="sheet" value="{{ s.index }}">
+            {% if s.state != "visible" %}
+            <input type="hidden" name="include_hidden" value="true">
+            <button type="submit" aria-label="Import hidden worksheet {{ s.name }}">Import hidden sheet</button>
+            {% else %}
+            <button type="submit" aria-label="Import worksheet {{ s.name }}">Import</button>
+            {% endif %}
+            <span class="htmx-indicator muted" role="status">Importing…</span>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      <form class="sheet-import" hx-post="/ui/sessions/{{ session_id }}/workbooks/{{ pending_workbook.id }}/discard"
+            hx-target="#datasets" hx-swap="outerHTML" hx-disabled-elt="find button">
+        <button type="submit">Cancel</button>
+      </form>
+    </div>
+    {% endif %}
+    {% if not datasets %}
+    <p class="dataset-hint muted">No datasets yet. Upload a CSV, then ask questions about it in the chat, e.g. "Summarize this dataset" or "Total revenue by category".</p>
+    {% elif active_dataset %}
+    <p class="dataset-hint">Analysis questions use <b>{{ active_dataset.filename }}</b>{% if not dataset_selected %} <span class="muted">(the only dataset)</span>{% endif %}.</p>
+    {% else %}
+    <p class="dataset-hint warn">Several datasets: choose one with “Use for analysis”, or name it in your question.</p>
+    {% endif %}
+    {% for d in datasets|reverse %}
+    {% set is_active = active_dataset is not none and active_dataset.id == d.id %}
+    <details class="dataset{% if is_active %} active{% endif %}" {% if dataset_status and dataset_status.dataset_id == d.id %}open{% endif %}>
+      <summary><b>{{ d.filename }}</b> <span class="muted">{{ "{:,}".format(d.rows) }} rows × {{ d.columns|length }} columns · {{ d.encoding }}</span>{% if is_active %} <span class="dataset-badge">used for analysis</span>{% endif %}{% if d.source %} <span class="muted dataset-origin">· Excel sheet “{{ d.source.sheet }}” of {{ d.source.workbook }}</span>{% endif %}</summary>
+      {% if datasets|length > 1 and not (is_active and dataset_selected) %}
+      <form class="dataset-select" hx-post="/ui/sessions/{{ session_id }}/datasets/{{ d.id }}/select"
+            hx-target="#datasets" hx-swap="outerHTML" hx-disabled-elt="find button">
+        <button type="submit">Use for analysis</button>
+      </form>
+      {% endif %}
+      <p class="export-actions">
+        Excel:
+        <a class="export-link" href="/api/sessions/{{ session_id }}/datasets/{{ d.id }}/report.xlsx" download>report</a> ·
+        <a class="export-link" href="/api/sessions/{{ session_id }}/datasets/{{ d.id }}/report.xlsx?source=true" download>report with source data</a> ·
+        <a class="export-link" href="/api/sessions/{{ session_id }}/datasets/{{ d.id }}/data.xlsx" download>data only</a>
+        <span class="export-status" role="status" aria-live="polite"></span>
+      </p>
+      {% if d.warnings %}
+      <ul class="dataset-warnings">{% for w in d.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+      {% endif %}
+      <div class="table-wrap">
+        <table class="dataset-preview">
+          <caption>First {{ d.preview|length }} of {{ "{:,}".format(d.rows) }} rows</caption>
+          <thead>
+            {% set formula_cells = d.source.formula_cells if d.source else {} %}
+            {% set formula_preview = d.source.preview_formula_cells if d.source else [] %}
+            <tr>{% for c in d.columns %}<th scope="col">{{ c.name }}<span class="dtype">{{ c.dtype }}{% if c.missing %} · {{ c.missing }} missing{% endif %}{% if c.name in formula_cells %} · {{ formula_cells[c.name] }} from formulas{% endif %}</span></th>{% endfor %}</tr>
+          </thead>
+          <tbody>
+            {% for row in d.preview %}
+            {% set r = loop.index0 %}
+            <tr>{% for cell in row %}{% if cell is none %}<td class="missing" title="Missing value">—</td>{% elif (r, loop.index0) in formula_preview %}<td class="formula" title="Value saved by an Excel formula (imported, not recalculated)">{{ cell }}<sup aria-label="from an Excel formula">ƒ</sup></td>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% endfor %}
+  </details>
+</section>

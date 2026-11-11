@@ -1,0 +1,31 @@
+OrderID,OrderDate,Product,Category,Region,Quantity,Sales
+1001,2024-01-04,Laptop,Electronics,North,2,1799.98
+1002,2024-01-07,Office Chair,Furniture,South,4,599.96
+1003,2024-01-11,Wireless Mouse,Electronics,East,10,249.90
+1004,2024-01-15,Standing Desk,Furniture,West,1,449.00
+1005,2024-01-19,Printer Paper,Office Supplies,North,25,124.75
+1006,2024-01-23,Monitor,Electronics,South,3,629.97
+1007,2024-01-28,Ballpoint Pens,Office Supplies,East,50,49.50
+1008,2024-02-02,Bookshelf,Furniture,North,2,239.98
+1009,2024-02-06,Laptop,Electronics,West,1,899.99
+1010,2024-02-09,Desk Lamp,Furniture,,6,179.94
+1011,2024-02-14,Stapler,Office Supplies,South,8,95.92
+1012,2024-02-18,Smartphone,Electronics,North,2,1399.98
+1013,2024-02-22,Office Chair,Furniture,East,3,
+1014,2024-02-27,Notebooks,Office Supplies,West,40,138.00
+1015,2024-03-03,Monitor,Electronics,East,2,419.98
+1016,2024-03-08,Filing Cabinet,Furniture,South,1,189.00
+1017,2024-03-12,Wireless Mouse,Electronics,North,,124.95
+1018,2024-03-17,Printer Paper,Office Supplies,West,30,149.70
+1019,2024-03-21,Standing Desk,Furniture,North,2,898.00
+1020,2024-03-26,Laptop,Electronics,South,3,2699.97
+1021,2024-04-01,Ballpoint Pens,Office Supplies,North,100,99.00
+1022,2024-04-05,Smartphone,Electronics,East,1,699.99
+1023,2024-04-10,Bookshelf,Furniture,West,3,359.97
+1024,2024-04-15,Desk Lamp,Furniture,East,4,119.96
+1025,2024-04-19,Stapler,Office Supplies,North,5,
+1026,2024-04-24,Monitor,Electronics,West,4,839.96
+1027,2024-04-29,Notebooks,Office Supplies,South,20,69.00
+1028,2024-05-03,Laptop,Electronics,North,1,899.99
+1029,2024-05-08,Filing Cabinet,Furniture,East,2,378.00
+1030,2024-05-13,Wireless Mouse,Electronics,South,6,149.94

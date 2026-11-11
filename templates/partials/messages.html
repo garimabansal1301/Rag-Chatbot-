@@ -1,0 +1,6 @@
+{% for m in messages %}
+{% set message_index = (message_offset or 0) + loop.index0 %}
+<article class="message {{ m.role }}" id="message-{{ message_index }}">
+  {% include "partials/message_body.html" %}
+</article>
+{% endfor %}

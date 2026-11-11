@@ -1,0 +1,10 @@
+<nav class="app-nav" aria-label="Main">
+  <a class="app-nav-link{% if active_page != 'evals' %} active{% endif %}" href="/"{% if active_page != 'evals' %} aria-current="page"{% endif %}>
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span>Chats</span>
+  </a>
+  <a class="app-nav-link{% if active_page == 'evals' %} active{% endif %}" href="/evals"{% if active_page == 'evals' %} aria-current="page"{% endif %}>
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+    <span>Evals</span>
+  </a>
+</nav>

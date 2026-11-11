@@ -1,0 +1,41 @@
+{% if compare_error %}
+<p class="text-error" role="alert">{{ compare_error }}</p>
+{% else %}
+{% set c = comparison %}
+<section class="compare" aria-label="Run comparison">
+  <h3>{{ c.base.created_label }} → {{ c.target.created_label }}</h3>
+  {% if not c.same_examples %}
+  <p class="detail-alert warn small">These runs evaluated different examples ({{ c.base.examples_total }} and {{ c.target.examples_total }};
+    {{ c.shared_count }} in both). Metric scores are not directly comparable; the question lists below use only the shared examples.</p>
+  {% endif %}
+  <div class="compare-bars">
+    {% for m in c.metrics %}
+    <div class="compare-row">
+      <div class="compare-label"><b>{{ m.label }}</b>
+        <span class="metric-delta {{ {'improved': 'up', 'declined': 'down'}.get(m.direction, 'flat') }}">
+          {% if m.delta is none %}not comparable{% elif m.direction == "improved" %}▲ improved {{ "%+.1f"|format(m.delta) }} pts{% elif m.direction == "declined" %}▼ declined {{ "%+.1f"|format(m.delta) }} pts{% else %}■ unchanged{% endif %}
+        </span>
+      </div>
+      <div class="compare-bar" title="Baseline"><span class="bar base" style="width: {{ m.base or 0 }}%"></span><span class="bar-value">{% if m.base is not none %}{{ "%.1f"|format(m.base) }}%{% else %}—{% endif %}</span></div>
+      <div class="compare-bar" title="Compared run"><span class="bar target" style="width: {{ m.target or 0 }}%"></span><span class="bar-value">{% if m.target is not none %}{{ "%.1f"|format(m.target) }}%{% else %}—{% endif %}</span></div>
+    </div>
+    {% endfor %}
+    <p class="compare-legend small"><span class="swatch base"></span> Baseline <span class="swatch target"></span> Compared run</p>
+  </div>
+
+  {% set groups = [
+    ("Failed in both runs", c.failed_in_both, "Questions that failed or errored in both runs."),
+    ("Fixed", c.fixed, "Failed or errored in the baseline, passed in the compared run."),
+    ("Regressed", c.regressed, "Passed in the baseline, failed or errored in the compared run."),
+  ] %}
+  {% for title, items, note in groups %}
+  <h4>{{ title }} <span class="muted small">({{ items|length }})</span></h4>
+  {% if items %}
+  <ul class="compare-list">
+    {% for i in items %}<li><span class="mono">{{ i.example_id }}</span> {{ i.question }}
+      <span class="muted small">({{ i.before }} → {{ i.after }})</span></li>{% endfor %}
+  </ul>
+  {% else %}<p class="muted small">None. {{ note }}</p>{% endif %}
+  {% endfor %}
+</section>
+{% endif %}

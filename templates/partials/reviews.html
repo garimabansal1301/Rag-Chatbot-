@@ -1,0 +1,71 @@
+{% set pending_reviews = reviews|selectattr("status", "in", ["pending", "processing"])|list %}
+<section id="reviews" class="reviews{% if reviews or review_status %} has-reviews{% endif %}" aria-label="Pending reviews"{% if reviews_oob %} hx-swap-oob="outerHTML"{% endif %}>
+  {% if reviews or review_status %}
+  <details class="reviews-panel" {% if pending_reviews or review_status %}open{% endif %}>
+    <summary>Pending reviews <span class="muted">({{ pending_reviews|length }} waiting)</span></summary>
+    {% if review_status %}<p class="review-status {{ review_status.level }}" role="status">{{ review_status.message }}</p>{% endif %}
+    {% for r in reviews %}
+    <article class="review-card status-{{ r.status }}" aria-labelledby="review-title-{{ r.id }}">
+      <header class="review-head">
+        <b id="review-title-{{ r.id }}">{{ r.kind_label }}</b>
+        <span class="review-badge {{ r.status }}">{{ {"pending": "Waiting for decision", "processing": "Being decided…", "approved": "Approved", "edited": "Edited and approved", "rejected": "Rejected", "expired": "Expired", "failed": "Failed"}.get(r.status, r.status) }}</span>
+        <span class="muted">{{ r.created_at.replace("T", " ")[:16] }} UTC</span>
+      </header>
+      <dl class="review-details">
+        <dt>Question</dt>
+        <dd class="review-text">{{ r.question }}</dd>
+        <dt>Why a review was requested</dt>
+        <dd><ul>{% for reason in r.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></dd>
+        {% if r.sources %}
+        <dt>Retrieved document references</dt>
+        <dd><ul class="review-sources">
+          {% for s in r.sources %}
+          <li><b>[{{ loop.index }}] {{ s.source }}</b>{% if s.score is not none %} <span class="muted">(similarity {{ "%.2f"|format(s.score) }})</span>{% endif %}
+            {% if s.snippet %}<div class="snippet">{{ s.snippet }}</div>{% endif %}</li>
+          {% endfor %}
+        </ul></dd>
+        {% elif r.kind == "unsupported_answer" %}
+        <dt>Retrieved document references</dt>
+        <dd class="muted">No document excerpt matched this question.</dd>
+        {% endif %}
+        {% if r.actions %}
+        <dt>Proposed action (not performed yet)</dt>
+        <dd>{% for a in r.actions %}<div class="review-action"><code>{{ a.tool }}</code><pre>{{ a.arguments|tojson(indent=2) }}</pre></div>{% endfor %}</dd>
+        {% else %}
+        <dt>AI-generated proposed response</dt>
+        <dd class="review-text review-proposed">{{ r.proposed_answer or "(the assistant wrote no reply)" }}</dd>
+        {% endif %}
+        {% if r.status in ("edited", "approved", "rejected") and r.final_answer is not none and r.final_answer != r.proposed_answer %}
+        <dt>Response shown to the user</dt>
+        <dd class="review-text">{{ r.final_answer }}</dd>
+        {% endif %}
+        {% if r.note %}<dt>Reviewer note</dt><dd class="review-text">{{ r.note }}</dd>{% endif %}
+      </dl>
+      {% if r.status == "pending" %}
+      <form class="review-form" hx-post="/ui/sessions/{{ session_id }}/reviews/{{ r.id }}/decide"
+            hx-target="#reviews" hx-swap="outerHTML" hx-disabled-elt="find button">
+        <fieldset class="review-choice">
+          <legend>Decision</legend>
+          <label><input type="radio" name="choice" value="approve" required> Approve</label>
+          <label><input type="radio" name="choice" value="reject"> Reject</label>
+          {% if r.kind != "consequential_action" %}
+          <label><input type="radio" name="choice" value="edit"> Approve my edited response</label>
+          {% endif %}
+        </fieldset>
+        {% if r.kind != "consequential_action" %}
+        <label class="review-edit">Edit response <span class="muted">(used when “Approve my edited response” is chosen)</span>
+          <textarea name="response" rows="4" maxlength="8000">{{ r.proposed_answer }}</textarea>
+        </label>
+        {% endif %}
+        <label class="review-note">Note <span class="muted">(optional, kept with the review)</span>
+          <input name="note" maxlength="1000">
+        </label>
+        <button class="primary" type="submit">Submit decision</button>
+        <span class="htmx-indicator muted" role="status">Submitting…</span>
+      </form>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </details>
+  {% endif %}
+</section>

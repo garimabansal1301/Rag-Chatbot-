@@ -1,0 +1,63 @@
+{% set latest = summary.latest %}
+{% if not latest %}
+<div class="eval-empty">
+  <h2>No evaluation results yet</h2>
+  <p class="muted">Scores appear here after your first run. Opening this page never starts an evaluation:
+    choose <b>Run Evaluation</b> and confirm to run one.</p>
+</div>
+{% endif %}
+<div class="metric-grid">
+  {% for m in summary.metrics %}
+  <article class="metric-card" aria-labelledby="metric-{{ m.key }}">
+    <h3 id="metric-{{ m.key }}">{{ m.label }}</h3>
+    <p class="metric-desc">{{ m.description }}</p>
+    {% if m.score is not none %}
+      {% set band = "good" if m.score >= 70 else ("warn" if m.score >= 50 else "bad") %}
+      <p class="metric-score">{{ "%.1f"|format(m.score) }}<span>%</span></p>
+      <div class="meter" role="meter" aria-label="{{ m.label }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ m.score }}">
+        <span class="{{ band }}" style="width: {{ m.score }}%"></span>
+      </div>
+      <p class="metric-meta">{{ m.scored }} scored{% if m.errors %} · <span class="text-error">{{ m.errors }} evaluation error{{ "" if m.errors == 1 else "s" }}</span>{% endif %}</p>
+      {% if m.delta is not none %}
+        {% set dir = "up" if m.delta > 0 else ("down" if m.delta < 0 else "flat") %}
+        <p class="metric-delta {{ dir }}">
+          {{ "▲" if dir == "up" else ("▼" if dir == "down" else "■") }}
+          {{ "%+.1f"|format(m.delta) }} pts <span class="muted">vs {{ "%.1f"|format(m.previous) }}% previous run</span>
+        </p>
+      {% else %}
+        <p class="metric-delta flat muted">No previous run to compare.</p>
+      {% endif %}
+    {% elif latest %}
+      <p class="metric-score muted">—</p>
+      <div class="meter" aria-hidden="true"><span style="width: 0"></span></div>
+      <p class="metric-meta text-error">No score: every evaluation of this metric errored ({{ m.errors }}).</p>
+    {% else %}
+      <p class="metric-score muted">—</p>
+      <div class="meter" aria-hidden="true"><span style="width: 0"></span></div>
+      <p class="metric-meta muted">Not evaluated yet.</p>
+    {% endif %}
+  </article>
+  {% endfor %}
+</div>
+
+{% if latest %}
+<section class="eval-overall" aria-label="Latest run summary">
+  <div class="overall-score">
+    <span class="overall-label">Overall score</span>
+    <span class="overall-value">{% if latest.overall is not none %}{{ "%.1f"|format(latest.overall) }}%{% else %}—{% endif %}</span>
+    <span class="muted small">Average of the four metric scores</span>
+  </div>
+  <dl class="overall-stats">
+    <div><dt>Examples evaluated</dt><dd>{{ latest.examples_total }}</dd></div>
+    <div><dt>Passed</dt><dd class="text-ok">{{ latest.examples_passed }}</dd></div>
+    <div><dt>Failed <span class="muted">(low quality)</span></dt><dd class="text-error">{{ latest.examples_failed }}</dd></div>
+    <div><dt>Evaluation errors</dt><dd class="text-warn">{{ latest.examples_errored }}{% if latest.metric_errors %} <span class="muted small">({{ latest.metric_errors }} metric{{ "" if latest.metric_errors == 1 else "s" }})</span>{% endif %}</dd></div>
+    <div><dt>Evaluated</dt><dd>{{ latest.created_label }}</dd></div>
+    <div><dt>Mode</dt><dd>{{ "LangSmith experiment" if latest.mode == "langsmith" else "Local" }}{% if latest.experiment_url %} · <a href="{{ latest.experiment_url }}" target="_blank" rel="noopener noreferrer">Open in LangSmith ↗</a>{% endif %}</dd></div>
+  </dl>
+  <p class="eval-legend muted small">
+    <b>Failed</b>: the answer scored below {{ latest.pass_threshold|round|int }}% on at least one metric.
+    <b>Evaluation error</b>: a metric could not be scored (for example the judge timed out or the answer could not be generated). Errors are never counted as scores.
+  </p>
+</section>
+{% endif %}

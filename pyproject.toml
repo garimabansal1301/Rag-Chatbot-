@@ -1,0 +1,57 @@
+[project]
+name = "rag-chatbot"
+version = "0.1.0"
+description = "Training scaffold: a session-based RAG chatbot (FastAPI + LangGraph + LangSmith)."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "fastapi>=0.160,<1",
+    "uvicorn[standard]>=0.50,<1",
+    "jinja2>=3.1,<4",
+    "python-multipart>=0.0.20",
+    "python-dotenv>=1.1,<2",
+    "langchain-core>=1.7,<2",
+    "langgraph>=1.2,<2",
+    "langsmith>=0.14,<0.15",
+    "langchain-anthropic>=1.7.7,<2",
+    "fastembed>=0.9.1,<0.10",
+    "numpy>=2.4,<3",
+    "langchain-google-genai>=4.4.2,<5",
+    "pypdf>=6.21.4,<7",
+    "httpx>=0.28.1,<1",
+    "pandas>=3.1,<4",
+    "openpyxl>=3.1.5,<4",
+    "langgraph-checkpoint-sqlite>=3.1.3,<4",
+    "mcp>=1.30,<2",
+    "langchain-mcp-adapters>=0.3.2,<0.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9,<10",
+    "httpx>=0.28,<1",
+    "ruff==0.17.3",
+    "mypy==2.4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "contract: public contract tests for the trainee milestones (expected to fail until implemented)",
+]
+addopts = "-q -m 'not contract'"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C901"]
+ignore = ["B008"]  # FastAPI uses Depends() in defaults by design
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true

@@ -1,0 +1,68 @@
+<div class="detail-head">
+  <span class="mono">{{ d.example_id }}</span>
+  <span class="eval-chip">{{ d.category_label }}</span>
+  {% with st = d.status %}{% include "partials/evals/_status_badge.html" %}{% endwith %}
+  <span class="muted small">Run of {{ d.run_label }}</span>
+</div>
+<h3 class="detail-question">{{ d.question }}</h3>
+
+{% if d.target_error %}
+<div class="detail-alert error" role="alert">
+  <b>Evaluation error: the answer could not be generated.</b>
+  <div class="mono small">{{ d.target_error }}</div>
+  <p class="small">No metric was scored for this question; this is not a quality result.</p>
+</div>
+{% endif %}
+
+<div class="detail-grid">
+  <section>
+    <h4>Generated answer</h4>
+    <div class="detail-text">{{ d.answer or "—" }}</div>
+  </section>
+  <section>
+    <h4>Reference answer</h4>
+    <div class="detail-text muted-bg">{{ d.reference_answer or "—" }}</div>
+  </section>
+</div>
+
+<h4>Scores</h4>
+<ul class="detail-metrics">
+  {% for key in ["faithfulness", "answer_relevance", "retrieval_relevance", "correctness"] %}
+  {% with s = d.scores[key] %}
+  <li class="detail-metric">
+    <div class="detail-metric-head"><b>{{ s.label }}</b> {% include "partials/evals/_score.html" %}</div>
+    {% if s.error %}
+      <p class="text-error small">Evaluation error: {{ s.error }}</p>
+    {% else %}
+      <p class="small">{{ s.explanation or "No explanation recorded." }}</p>
+    {% endif %}
+  </li>
+  {% endwith %}
+  {% endfor %}
+</ul>
+
+<h4>Sources and citations</h4>
+<dl class="detail-facts">
+  <dt>Expected sources</dt>
+  <dd>{% if d.expected_sources %}{{ d.expected_sources|join(", ") }}{% else %}<span class="muted">None (the documents do not answer this question)</span>{% endif %}</dd>
+  <dt>Retrieved sources</dt>
+  <dd>{% if d.sources %}{{ d.sources|join(", ") }}{% else %}<span class="muted">Nothing passed the relevance threshold.</span>{% endif %}</dd>
+  <dt>Citation check</dt>
+  <dd>
+    {% if d.citations.invalid %}<span class="text-error">Cites excerpt number{{ "" if d.citations.invalid|length == 1 else "s" }} that do not exist: {{ d.citations.invalid|join(", ") }}.</span>
+    {% elif d.citations.cited %}<span class="text-ok">Valid: cites excerpt{{ "" if d.citations.cited|length == 1 else "s" }} [{{ d.citations.cited|join("], [") }}].</span>
+    {% elif d.citations.has_contexts %}<span class="text-warn">No citation although excerpts were retrieved.</span>
+    {% else %}<span class="muted">No excerpts, nothing to cite.</span>{% endif %}
+  </dd>
+</dl>
+
+<h4>Retrieved contexts <span class="muted small">({{ d.contexts|length }})</span></h4>
+{% for c in d.contexts %}
+<details class="detail-context">
+  <summary>[{{ c.number }}] {{ c.source }}{% if c.score is not none %} <span class="muted small">(similarity {{ "%.2f"|format(c.score) }})</span>{% endif %}
+    {% if c.number in d.citations.cited %}<span class="eval-chip">cited</span>{% endif %}</summary>
+  <div class="detail-text small">{{ c.text }}</div>
+</details>
+{% else %}
+<p class="muted small">No contexts were retrieved for this question.</p>
+{% endfor %}

@@ -1,0 +1,45 @@
+{# The evaluation dataset (read-only). Search, filter and selection run in the browser (static/evals.js). #}
+<div class="dataset-toolbar" id="dataset-toolbar">
+  <label class="dataset-search">
+    <span class="sr-only">Search questions</span>
+    <input type="search" id="dataset-search" placeholder="Search questions, IDs or reference answers…" autocomplete="off" maxlength="200">
+  </label>
+  <label>
+    <span class="sr-only">Filter by category</span>
+    <select id="dataset-category">
+      <option value="">All categories</option>
+      {% for c in categories %}<option value="{{ c.key }}">{{ c.label }} ({{ c.count }})</option>{% endfor %}
+    </select>
+  </label>
+  <span class="dataset-count muted" id="dataset-selected" aria-live="polite">0 selected</span>
+  <button type="button" id="dataset-clear" disabled>Clear selection</button>
+  <button type="button" class="primary" id="run-selected" disabled aria-haspopup="dialog">Run selected…</button>
+</div>
+<p class="muted small">Reference answers are verified against the knowledge-base documents and are read-only here. The dataset contains no chat history.</p>
+<div class="table-wrap eval-table-wrap">
+  <table class="eval-table dataset-table" id="dataset-table">
+    <caption class="sr-only">Evaluation dataset {{ dataset_name }}</caption>
+    <thead>
+      <tr>
+        <th scope="col" class="check-col"><input type="checkbox" id="dataset-select-all" aria-label="Select all shown questions"></th>
+        <th scope="col">ID</th><th scope="col">Question</th><th scope="col">Category</th>
+        <th scope="col">Expected sources</th><th scope="col">Reference answer</th><th scope="col">Answerable</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in dataset_rows %}
+      <tr data-id="{{ r.example_id }}" data-category="{{ r.category }}"
+          data-search="{{ (r.example_id ~ ' ' ~ r.question ~ ' ' ~ r.reference_answer)|lower }}">
+        <td class="check-col"><input type="checkbox" class="dataset-check" value="{{ r.example_id }}" aria-label="Select {{ r.example_id }}"></td>
+        <td class="mono">{{ r.example_id }}</td>
+        <td>{{ r.question }}</td>
+        <td><span class="eval-chip">{{ r.category_label }}</span></td>
+        <td class="small">{% if r.expected_sources %}{{ r.expected_sources|join(", ") }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td><details class="ref-answer"><summary><span class="clamp">{{ r.reference_answer }}</span></summary><div class="small">{{ r.reference_answer }}</div></details></td>
+        <td>{% if r.answerable %}<span class="text-ok">Yes</span>{% else %}<span class="muted">No</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="muted small" id="dataset-empty" hidden>No questions match your search.</p>

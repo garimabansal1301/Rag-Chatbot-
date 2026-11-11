@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ current.title if current else "RAG Chatbot" }}{% endblock %}
+{% block body %}
+<div class="layout">
+  <aside class="sidebar">
+    {% include "partials/app_nav.html" %}
+    <form method="post" action="/ui/sessions">
+      <button class="primary wide" type="submit">+ New chat</button>
+    </form>
+
+    {% include "partials/session_list.html" %}
+
+    <section class="upload">
+      <h2>Documents</h2>
+      <form hx-post="/ui/documents" hx-encoding="multipart/form-data" hx-target="#upload-status"
+            hx-disabled-elt="find button"
+            hx-on::before-request="document.getElementById('upload-status').textContent = ''"
+            hx-on::after-request="if(event.detail.successful) this.reset()">
+        <input type="file" name="file" accept="{{ upload_suffixes|join(',') }}" required>
+        <button type="submit">Upload</button>
+        <span class="htmx-indicator muted" role="status">Uploading and indexing…</span>
+        <small class="muted">{{ upload_suffixes|join(', ') }} · max {{ upload_limit_mb }} MB</small>
+      </form>
+      <div id="upload-status" aria-live="polite"></div>
+    </section>
+
+    {% if missing %}
+    <details class="status">
+      <summary>{{ missing|length }} module(s) not implemented yet</summary>
+      <ul>{% for name, reason in missing.items() %}<li><b>{{ name }}</b>: {{ reason }}</li>{% endfor %}</ul>
+    </details>
+    {% endif %}
+  </aside>
+
+  <main class="chat">
+    {% if current %}
+      <header class="chat-header">
+        <form class="rename" method="post" action="/ui/sessions/{{ current.id }}/rename">
+          <input name="title" value="{{ current.title }}" aria-label="Session title" maxlength="120">
+          <button type="submit">Rename</button>
+        </form>
+        <form method="post" action="/ui/sessions/{{ current.id }}/delete"
+              onsubmit="return confirm('Delete this chat?')">
+          <button class="danger" type="submit">Delete</button>
+        </form>
+      </header>
+
+      {% include "partials/datasets.html" %}
+      {% include "partials/reviews.html" %}
+
+      <div id="messages" class="messages">
+        {% with messages = current.messages %}{% include "partials/messages.html" %}{% endwith %}
+      </div>
+
+      <form class="composer" hx-post="/ui/sessions/{{ current.id }}/messages"
+            hx-target="#messages" hx-swap="beforeend"
+            hx-on::before-request="this.querySelector('button').disabled = true"
+            hx-on::after-request="this.querySelector('button').disabled = false; if(event.detail.successful){ this.reset(); document.getElementById('messages').scrollTop = 1e9 }">
+        <textarea name="content" rows="2" placeholder="Ask about your documents…" required
+                  onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); this.form.requestSubmit()}"></textarea>
+        <button class="primary" type="submit">Send</button>
+      </form>
+    {% else %}
+      <div class="empty">
+        <h1>RAG Chatbot</h1>
+        <p>Create a chat to get started.</p>
+      </div>
+    {% endif %}
+  </main>
+</div>
+<script>
+  const box = document.getElementById('messages'); if (box) box.scrollTop = box.scrollHeight;
+</script>
+{% endblock %}

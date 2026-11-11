@@ -1,0 +1,4 @@
+{# One score cell: s = {"score", "passed", "error", "label"} #}
+{% if s.error %}<span class="score-badge error" title="Evaluation error: {{ s.error }}">Error</span>
+{% elif s.score is not none %}<span class="score-badge {{ 'pass' if s.passed else 'fail' }}">{{ "%.0f"|format(s.score) }}%</span>
+{% else %}<span class="muted">—</span>{% endif %}

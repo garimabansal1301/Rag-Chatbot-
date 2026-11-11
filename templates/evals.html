@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Evals · RAG Chatbot{% endblock %}
+{% block body %}
+<div class="layout">
+  <aside class="sidebar">
+    {% include "partials/app_nav.html" %}
+    <form method="post" action="/ui/sessions">
+      <button class="primary wide" type="submit">+ New chat</button>
+    </form>
+    {% include "partials/session_list.html" %}
+  </aside>
+
+  <main class="evals" id="evals" data-langsmith="{{ 'true' if langsmith_configured else 'false' }}"
+        data-dataset-size="{{ summary.dataset.size }}" data-calls-per-example="{{ calls_per_example }}">
+    <header class="evals-header">
+      <div class="evals-heading">
+        <h1>Evals</h1>
+        <p class="muted">Evaluate the quality and reliability of your RAG chatbot.</p>
+        <p class="evals-dataset">
+          <span class="eval-chip">Dataset</span> <b>{{ dataset_name }}</b>
+          <span class="muted">· {{ summary.dataset.size }} examples</span>
+        </p>
+      </div>
+      <button class="primary" id="open-run-dialog" type="button" aria-haspopup="dialog">Run Evaluation</button>
+    </header>
+
+    {% include "partials/evals/status.html" %}
+
+    <section id="eval-summary" aria-label="Evaluation summary"
+             hx-get="/ui/evals/summary" hx-trigger="evals-run-finished from:body" hx-swap="innerHTML">
+      {% include "partials/evals/summary.html" %}
+    </section>
+
+    <div class="eval-tabs" role="tablist" aria-label="Evals sections">
+      <button type="button" role="tab" id="tab-results" aria-controls="panel-results" aria-selected="true">Results</button>
+      <button type="button" role="tab" id="tab-dataset" aria-controls="panel-dataset" aria-selected="false" tabindex="-1">Dataset</button>
+      <button type="button" role="tab" id="tab-history" aria-controls="panel-history" aria-selected="false" tabindex="-1">History</button>
+    </div>
+
+    <section class="eval-panel" id="panel-results" role="tabpanel" aria-labelledby="tab-results">
+      <div id="eval-results" hx-get="/ui/evals/results" hx-trigger="evals-run-finished from:body" hx-swap="innerHTML">
+        {% include "partials/evals/results.html" %}
+      </div>
+    </section>
+
+    <section class="eval-panel" id="panel-dataset" role="tabpanel" aria-labelledby="tab-dataset" hidden>
+      {% include "partials/evals/dataset.html" %}
+    </section>
+
+    <section class="eval-panel" id="panel-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+      <div id="eval-history" hx-get="/ui/evals/history" hx-trigger="evals-run-finished from:body" hx-swap="innerHTML">
+        {% include "partials/evals/history.html" %}
+      </div>
+      <div id="eval-compare" aria-live="polite"></div>
+    </section>
+
+    {% include "partials/evals/run_dialog.html" %}
+
+    <dialog class="eval-dialog eval-detail-dialog" id="detail-dialog" aria-labelledby="detail-title">
+      <div class="eval-dialog-head">
+        <h2 id="detail-title">Result details</h2>
+        <button type="button" class="eval-close" data-close-dialog aria-label="Close">×</button>
+      </div>
+      <div id="eval-detail" aria-live="polite"><p class="muted">Loading…</p></div>
+    </dialog>
+  </main>
+</div>
+<script src="{{ url_for('static', path='evals.js') }}" defer></script>
+{% endblock %}

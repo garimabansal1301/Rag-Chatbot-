@@ -1,0 +1,54 @@
+{% if not history %}
+<div class="eval-empty">
+  <h2>No evaluation runs yet</h2>
+  <p class="muted">Each completed run is saved as a local report and listed here. Nothing is listed until a run has finished.</p>
+</div>
+{% else %}
+<div class="table-wrap eval-table-wrap">
+  <table class="eval-table history-table">
+    <caption class="sr-only">Previous evaluation runs, newest first</caption>
+    <thead>
+      <tr>
+        <th scope="col">Date</th><th scope="col">Mode</th><th scope="col">Examples</th><th scope="col">Overall</th>
+        <th scope="col">Faithful&shy;ness</th><th scope="col">Answer rel.</th><th scope="col">Retrieval rel.</th><th scope="col">Correct&shy;ness</th>
+        <th scope="col">Passed / failed / errors</th><th scope="col"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in history %}
+      <tr data-run-id="{{ h.id }}">
+        <td>{{ h.created_label }}{% if loop.first %} <span class="eval-chip">latest</span>{% endif %}</td>
+        <td>{{ "LangSmith" if h.mode == "langsmith" else "Local" }}{% if h.experiment_url %} <a href="{{ h.experiment_url }}" target="_blank" rel="noopener noreferrer" aria-label="Open experiment in LangSmith">↗</a>{% endif %}</td>
+        <td>{{ h.examples_total }}</td>
+        <td><b>{% if h.overall is not none %}{{ "%.1f"|format(h.overall) }}%{% else %}—{% endif %}</b></td>
+        {% for key in ["faithfulness", "answer_relevance", "retrieval_relevance", "correctness"] %}
+        <td>{% if h.metrics[key].score is not none %}{{ "%.1f"|format(h.metrics[key].score) }}%{% else %}<span class="muted">—</span>{% endif %}</td>
+        {% endfor %}
+        <td><span class="text-ok">{{ h.examples_passed }}</span> / <span class="text-error">{{ h.examples_failed }}</span> / <span class="text-warn">{{ h.examples_errored }}</span></td>
+        <td><button type="button" hx-get="/ui/evals/results?run={{ h.id }}" hx-target="#eval-results"
+                    hx-on::after-request="window.evalsShowTab && window.evalsShowTab('results')">Open</button></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<form class="compare-form" hx-get="/ui/evals/compare" hx-target="#eval-compare">
+  <h3>Compare two runs</h3>
+  {% if history|length < 2 %}
+    <p class="muted small">Run at least two evaluations to compare them.</p>
+  {% else %}
+  <label>Baseline
+    <select name="base" required>
+      {% for h in history %}<option value="{{ h.id }}" {% if loop.index == 2 %}selected{% endif %}>{{ h.created_label }} · {{ h.mode }} · {{ h.examples_total }} ex.</option>{% endfor %}
+    </select>
+  </label>
+  <label>Compared with
+    <select name="target" required>
+      {% for h in history %}<option value="{{ h.id }}" {% if loop.first %}selected{% endif %}>{{ h.created_label }} · {{ h.mode }} · {{ h.examples_total }} ex.</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit">Compare</button>
+  {% endif %}
+</form>
+{% endif %}

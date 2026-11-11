@@ -1,0 +1,82 @@
+  <div class="role">{{ m.role }}</div>
+  {% if m.review %}
+  {% if m.review.status in ("pending", "processing") %}
+  <p class="review-flag waiting"><span class="review-badge pending">Waiting for review</span> See <a href="#reviews">Pending reviews</a> above.</p>
+  {% else %}
+  <p class="review-flag"><span class="review-badge {{ m.review.status }}">{{ {"approved": "Approved by a reviewer", "edited": "Edited by a reviewer", "rejected": "Rejected by a reviewer", "expired": "Review expired", "failed": "Review failed"}.get(m.review.status, m.review.status) }}</span></p>
+  {% endif %}
+  {% endif %}
+  <div class="content">{{ m.content }}</div>
+  {% if m.analysis %}
+  <section class="analysis-results" aria-label="Analysis results">
+    {% for t in m.analysis %}
+    <div class="analysis-table">
+      {% if t.chart %}
+      <figure class="analysis-chart chart-{{ t.chart.type }}">
+        <figcaption>{{ t.chart.title }}</figcaption>
+        <div class="chart-canvas"><canvas role="img" aria-label="{{ t.chart.type }} chart: {{ t.chart.title }}"></canvas></div>
+        <script type="application/json" class="chart-spec">{{ t.chart.model_dump(mode="json")|tojson }}</script>
+        <p class="chart-fallback" hidden>The chart could not be displayed; the table below has the same values.</p>
+        {% for n in t.chart.notes %}<p class="analysis-note">{{ n }}</p>{% endfor %}
+      </figure>
+      {% endif %}
+      <div class="table-wrap">
+        <table class="dataset-preview">
+          <caption>{{ t.title }} <span class="muted">· {{ t.dataset }}</span></caption>
+          <thead><tr>{% for c in t.columns %}<th scope="col">{{ c }}</th>{% endfor %}</tr></thead>
+          <tbody>
+            {% for row in t.rows %}
+            <tr>{% for cell in row %}{% if cell is none %}<td class="missing" title="Missing value">—</td>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if t.total_rows > t.rows|length %}<p class="analysis-note">Showing {{ t.rows|length }} of {{ "{:,}".format(t.total_rows) }} result rows.</p>{% endif %}
+      {% for n in t.notes %}<p class="analysis-note">{{ n }}</p>{% endfor %}
+      {% if session_id and m.role == "assistant" and t.columns %}
+      <p class="export-actions">
+        <a class="export-link" href="/api/sessions/{{ session_id }}/messages/{{ message_index }}/analysis/{{ loop.index0 }}/export.xlsx" download>Export to Excel (.xlsx)</a>
+        <span class="export-status" role="status" aria-live="polite"></span>
+      </p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+  {% if m.sources %}
+  <details class="sources">
+    <summary>{{ m.sources|length }} source(s)</summary>
+    <ul>
+      {% for s in m.sources %}
+      <li><b>{{ s.source }}</b>{% if s.score is not none %} <span class="muted">({{ "%.2f"|format(s.score) }})</span>{% endif %}
+        {% if s.snippet %}<div class="snippet">{{ s.snippet }}</div>{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+  {% if m.images %}
+  <section class="related-images" aria-label="Related images">
+    <h3>Related images</h3>
+    <div class="image-grid">
+      {% for img in m.images[:3] %}
+      <figure class="image-card">
+        <a href="{{ img.source_page_url }}" target="_blank" rel="noopener noreferrer">
+          <img src="{{ img.thumbnail_url }}" alt="{{ img.title }}{% if img.creator %} by {{ img.creator }}{% endif %}"
+               loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        </a>
+        <figcaption>
+          <span class="image-title">{{ img.title }}</span>
+          {% if img.creator %}<span>by {% if img.creator_url %}<a href="{{ img.creator_url }}" target="_blank" rel="noopener noreferrer">{{ img.creator }}</a>{% else %}{{ img.creator }}{% endif %}</span>{% endif %}
+          <span>{% if img.license_url %}<a href="{{ img.license_url }}" target="_blank" rel="noopener noreferrer">{{ img.license_name }}</a>{% else %}{{ img.license_name }}{% endif %}</span>
+          <a href="{{ img.source_page_url }}" target="_blank" rel="noopener noreferrer">View source</a>
+        </figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+    <p class="image-notice">
+      Images found with <a href="https://openverse.org" target="_blank" rel="noopener noreferrer">Openverse</a>;
+      this app is not endorsed or certified by Openverse. License details come from the original sources and
+      are not verified by Openverse — check them before reusing an image.
+    </p>
+  </section>
+  {% endif %}

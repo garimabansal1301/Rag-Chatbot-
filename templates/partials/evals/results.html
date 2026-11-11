@@ -1,0 +1,55 @@
+{% if not results %}
+<div class="eval-empty">
+  <h2>No results to show</h2>
+  <p class="muted">After a run, every evaluated question appears here with its answer, scores and status.</p>
+</div>
+{% else %}
+{% set run = results.run %}
+<div class="results-head">
+  <div>
+    <h2>Run of {{ run.created_label }}</h2>
+    <p class="muted small">
+      {{ "LangSmith experiment" if run.mode == "langsmith" else "Local evaluation" }} · {{ run.examples_total }} example{{ "" if run.examples_total == 1 else "s" }}
+      {% if run.judge_model %}· judge {{ run.judge_model }}{% endif %}
+      {% if run.experiment_url %}· <a href="{{ run.experiment_url }}" target="_blank" rel="noopener noreferrer">Open in LangSmith ↗</a>{% endif %}
+    </p>
+  </div>
+  <label class="results-filter">Show
+    <select data-results-filter aria-label="Filter results by status">
+      <option value="">All ({{ results.examples|length }})</option>
+      <option value="passed">Passed ({{ run.examples_passed }})</option>
+      <option value="failed">Failed ({{ run.examples_failed }})</option>
+      <option value="error">Evaluation errors ({{ run.examples_errored }})</option>
+    </select>
+  </label>
+</div>
+<div class="table-wrap eval-table-wrap">
+  <table class="eval-table results-table">
+    <caption class="sr-only">Results per question. Select a row for details.</caption>
+    <thead>
+      <tr>
+        <th scope="col">ID</th><th scope="col">Question</th><th scope="col">Generated answer</th>
+        <th scope="col">Reference answer</th><th scope="col">Faithful&shy;ness</th><th scope="col">Answer relevance</th>
+        <th scope="col">Retrieval relevance</th><th scope="col">Correct&shy;ness</th><th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in results.examples %}
+      <tr class="clickable" data-status="{{ r.status }}" tabindex="0"
+          hx-get="/ui/evals/runs/{{ run.id }}/examples/{{ r.example_id }}" hx-target="#eval-detail"
+          hx-trigger="click, keyup[key=='Enter']" aria-label="Details for {{ r.example_id }}">
+        <td class="mono">{{ r.example_id }}</td>
+        <td><div class="clamp">{{ r.question }}</div></td>
+        <td>{% if r.target_error %}<span class="text-error">No answer (generation failed)</span>{% else %}<div class="clamp">{{ r.answer }}</div>{% endif %}</td>
+        <td><div class="clamp muted">{{ r.reference_answer or "—" }}</div></td>
+        {% for key in ["faithfulness", "answer_relevance", "retrieval_relevance", "correctness"] %}
+        <td class="score-cell">{% with s = r.scores[key] %}{% include "partials/evals/_score.html" %}{% endwith %}</td>
+        {% endfor %}
+        <td>{% with st = r.status %}{% include "partials/evals/_status_badge.html" %}{% endwith %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="muted small" data-results-empty hidden>No results match this filter.</p>
+{% endif %}

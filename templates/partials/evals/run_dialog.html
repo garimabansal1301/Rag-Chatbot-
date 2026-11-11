@@ -1,0 +1,48 @@
+{# Run configuration. Nothing starts until the user confirms here; the server checks the same confirmations. #}
+<dialog class="eval-dialog" id="run-dialog" aria-labelledby="run-dialog-title">
+  <form id="run-form" novalidate>
+    <div class="eval-dialog-head">
+      <h2 id="run-dialog-title">Run evaluation</h2>
+      <button type="button" class="eval-close" data-close-dialog aria-label="Close">×</button>
+    </div>
+
+    <fieldset class="run-options">
+      <legend>Examples</legend>
+      <label><input type="radio" name="scope" value="all" checked> All {{ summary.dataset.size }} examples</label>
+      <label><input type="radio" name="scope" value="selected"> Selected examples (<span data-selected-count>0</span>)
+        <small class="muted" data-selected-hint>Select questions in the Dataset tab.</small></label>
+    </fieldset>
+
+    <fieldset class="run-options">
+      <legend>Mode</legend>
+      <label><input type="radio" name="mode" value="local" checked> Local evaluation
+        <small class="muted">Results stay on this machine. Nothing is uploaded to LangSmith.</small></label>
+      <label><input type="radio" name="mode" value="langsmith" {% if not langsmith_configured %}disabled{% endif %}> LangSmith experiment
+        <small class="muted">{% if langsmith_configured %}Creates an experiment on the LangSmith dataset {{ dataset_name }}.{% else %}Unavailable: LangSmith is not configured on the server.{% endif %}</small></label>
+    </fieldset>
+
+    <div class="run-estimate" id="run-estimate" aria-live="polite">Calculating the expected usage…</div>
+
+    <div class="run-warning" role="note">
+      <b>Before you start</b>
+      <ul>
+        <li>Gemini answer-generation calls may incur usage.</li>
+        <li>LLM-as-a-judge calls may incur additional usage.</li>
+        <li data-mode-note="langsmith">LangSmith mode sends evaluation questions, generated answers, retrieved excerpts, scores and explanations to LangSmith.</li>
+        <li data-mode-note="local">Local mode does not upload evaluation results to LangSmith.</li>
+      </ul>
+    </div>
+
+    <label class="run-confirm"><input type="checkbox" name="confirm_gemini_usage">
+      <span>I understand this run makes up to <b data-max-calls>…</b> Gemini calls, which may incur usage.</span></label>
+    <label class="run-confirm" data-langsmith-only hidden><input type="checkbox" name="confirm_langsmith_upload">
+      <span>I confirm that questions, generated answers, retrieved excerpts, scores and explanations will be sent to LangSmith.</span></label>
+
+    <p class="text-error small" id="run-error" role="alert" hidden></p>
+
+    <div class="run-actions">
+      <button type="button" data-close-dialog>Cancel</button>
+      <button type="submit" class="primary" id="run-start" disabled>Start evaluation</button>
+    </div>
+  </form>
+</dialog>
