@@ -167,7 +167,8 @@ def test_server_module_has_no_eval_exec_or_system_access() -> None:
     assert not names & {"eval", "exec", "open", "compile", "__import__"}
     imported = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
     imported |= {str(n.module).split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)}
-    assert imported <= {"__future__", "typing", "mcp", "pydantic", "langchain_core", "app"}, "no os, subprocess, socket ..."
+    allowed = {"__future__", "typing", "mcp", "pydantic", "langchain_core", "app"}
+    assert imported <= allowed, "no os, subprocess, socket, pathlib ..."
     assert 'transport="stdio"' in SERVER_FILE.read_text(encoding="utf-8")
 
 
